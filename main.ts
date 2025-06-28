@@ -11,6 +11,12 @@ interface SlideImprovementsSettings {
   headingMarginTop: string;
   accentColor: string;
   scrollableSlides: boolean;
+  h1Color: string;
+  h2Color: string;
+  h3Color: string;
+  h4Color: string;
+  h5Color: string;
+  h6Color: string;
 }
 
 const DEFAULT_SETTINGS: SlideImprovementsSettings = {
@@ -23,36 +29,59 @@ const DEFAULT_SETTINGS: SlideImprovementsSettings = {
   headingMarginTop: "2.5em",
   accentColor: "#A2CF80",
   scrollableSlides: true,
+  h1Color: "#A2CF80",
+  h2Color: "#FFD700",
+  h3Color: "#FF8C00",
+  h4Color: "#1E90FF",
+  h5Color: "#BA55D3",
+  h6Color: "#FF69B4",
 };
 
-// CSS injection helper
+/**
+ * Inject slide CSS with NO fallback for heading color variables.
+ * Uses unique variable names to avoid conflicts, e.g. --slide-h1-color.
+ */
 function injectSlideCss(settings: SlideImprovementsSettings) {
   const id = "obsidian-slide-improvements-styles";
-  let styleTag = document.getElementById(id) as HTMLStyleElement | null;
-  if (!styleTag) {
-    styleTag = document.createElement("style");
-    styleTag.id = id;
-    document.head.appendChild(styleTag);
-  }
+  document.getElementById(id)?.remove();
 
+  const styleTag = document.createElement("style");
+  styleTag.id = id;
   styleTag.textContent = `
     :root {
       --accent-color: ${settings.accentColor};
+      --slide-h1-color: ${settings.h1Color};
+      --slide-h2-color: ${settings.h2Color};
+      --slide-h3-color: ${settings.h3Color};
+      --slide-h4-color: ${settings.h4Color};
+      --slide-h5-color: ${settings.h5Color};
+      --slide-h6-color: ${settings.h6Color};
+      --base-font-size: ${settings.baseFontSize};
+      --h1-font-size: ${settings.h1FontSize};
+      --h2-font-size: ${settings.h2FontSize};
+      --slide-padding: ${settings.slidePadding};
+      --heading-margin-top: ${settings.headingMarginTop};
     }
     .reveal {
-      font-size: ${settings.baseFontSize};
+      font-size: var(--base-font-size, 1.6em);
     }
-    .reveal h1 {
-      font-size: ${settings.h1FontSize} !important;
+    .reveal .slide h1, .reveal section h1 {
+      font-size: var(--h1-font-size, 2em) !important;
       line-height: 1.1;
+      color: var(--slide-h1-color) !important;
     }
-    .reveal h2 {
-      font-size: ${settings.h2FontSize} !important;
+    .reveal .slide h2, .reveal section h2 {
+      font-size: var(--h2-font-size, 1.4em) !important;
       line-height: 1.1;
+      color: var(--slide-h2-color) !important;
     }
+    .reveal .slide h3, .reveal section h3 { color: var(--slide-h3-color) !important; }
+    .reveal .slide h4, .reveal section h4 { color: var(--slide-h4-color) !important; }
+    .reveal .slide h5, .reveal section h5 { color: var(--slide-h5-color) !important; }
+    .reveal .slide h6, .reveal section h6 { color: var(--slide-h6-color) !important; }
     .reveal .slide {
-      padding-left: ${settings.slidePadding} !important;
-      padding-right: ${settings.slidePadding} !important;
+      padding-left: var(--slide-padding, 3vw) !important;
+      padding-right: var(--slide-padding, 3vw) !important;
       ${settings.scrollableSlides ? "overflow-y: auto !important; max-height: 100vh;" : ""}
     }
     .reveal .slide h1:not(:first-of-type),
@@ -67,9 +96,10 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
     .reveal section h4:not(:first-of-type),
     .reveal section h5:not(:first-of-type),
     .reveal section h6:not(:first-of-type) {
-      margin-top: ${settings.headingMarginTop} !important;
+      margin-top: var(--heading-margin-top, 2.5em) !important;
     }
   `;
+  document.head.appendChild(styleTag);
 }
 
 export default class ObsidianSlideImprovementsPlugin extends Plugin {
@@ -161,6 +191,8 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
 
     containerEl.createEl("h2", { text: "Obsidian Slide Improvements - Settings" });
 
+    // --- Enablement Section ---
+    containerEl.createEl("h3", { text: "Enable" });
     new Setting(containerEl)
       .setName("Enable plugin")
       .setDesc("Enable or disable Obsidian Slide Improvements.")
@@ -171,18 +203,20 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    // --- Scrolling Section ---
+    containerEl.createEl("h3", { text: "Scrolling" });
     new Setting(containerEl)
-      .setName("Output folder")
-      .setDesc("Folder to save generated slide notes (leave blank for vault root).")
-      .addText(text => text
-        .setPlaceholder("slides")
-        .setValue(this.plugin.settings.outputFolder)
+      .setName("Scrollable slides")
+      .setDesc("Allow slides to scroll vertically when content overflows.")
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.scrollableSlides)
         .onChange(async (value) => {
-          this.plugin.settings.outputFolder = value;
+          this.plugin.settings.scrollableSlides = value;
           await this.plugin.saveSettings();
         }));
 
-    // Font size
+    // --- Sizing Section ---
+    containerEl.createEl("h3", { text: "Sizes" });
     new Setting(containerEl)
       .setName("Base font size")
       .setDesc("Font size for slide content (e.g., 1.6em, 22px)")
@@ -233,23 +267,83 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
           await this.plugin.saveSettings();
         }));
 
+    // --- Colors Section ---
+    containerEl.createEl("h3", { text: "Colors" });
     new Setting(containerEl)
       .setName("Accent color")
-      .setDesc("Accent color for slides (CSS color value, e.g., #A2CF80)")
-      .addText(text => text
-        .setValue(this.plugin.settings.accentColor)
+      .setDesc("Accent color for slides (applies to links)")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.accentColor || "#A2CF80")
         .onChange(async (value) => {
-          this.plugin.settings.accentColor = value;
+          this.plugin.settings.accentColor = value || "#A2CF80";
           await this.plugin.saveSettings();
         }));
 
     new Setting(containerEl)
-      .setName("Scrollable slides")
-      .setDesc("Allow slides to scroll vertically when content overflows.")
-      .addToggle(toggle => toggle
-        .setValue(this.plugin.settings.scrollableSlides)
+      .setName("H1 Color")
+      .setDesc("Color for H1 headings")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.h1Color || "#A2CF80")
         .onChange(async (value) => {
-          this.plugin.settings.scrollableSlides = value;
+          this.plugin.settings.h1Color = value || "#A2CF80";
+          await this.plugin.saveSettings();
+        }));
+    new Setting(containerEl)
+      .setName("H2 Color")
+      .setDesc("Color for H2 headings")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.h2Color || "#FFD700")
+        .onChange(async (value) => {
+          this.plugin.settings.h2Color = value || "#FFD700";
+          await this.plugin.saveSettings();
+        }));
+    new Setting(containerEl)
+      .setName("H3 Color")
+      .setDesc("Color for H3 headings")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.h3Color || "#FF8C00")
+        .onChange(async (value) => {
+          this.plugin.settings.h3Color = value || "#FF8C00";
+          await this.plugin.saveSettings();
+        }));
+    new Setting(containerEl)
+      .setName("H4 Color")
+      .setDesc("Color for H4 headings")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.h4Color || "#1E90FF")
+        .onChange(async (value) => {
+          this.plugin.settings.h4Color = value || "#1E90FF";
+          await this.plugin.saveSettings();
+        }));
+    new Setting(containerEl)
+      .setName("H5 Color")
+      .setDesc("Color for H5 headings")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.h5Color || "#BA55D3")
+        .onChange(async (value) => {
+          this.plugin.settings.h5Color = value || "#BA55D3";
+          await this.plugin.saveSettings();
+        }));
+    new Setting(containerEl)
+      .setName("H6 Color")
+      .setDesc("Color for H6 headings")
+      .addColorPicker(picker => picker
+        .setValue(this.plugin.settings.h6Color || "#FF69B4")
+        .onChange(async (value) => {
+          this.plugin.settings.h6Color = value || "#FF69B4";
+          await this.plugin.saveSettings();
+        }));
+
+    // --- Output Section ---
+    containerEl.createEl("h3", { text: "Output" });
+    new Setting(containerEl)
+      .setName("Output folder")
+      .setDesc("Folder to save generated slide notes (leave blank for vault root).")
+      .addText(text => text
+        .setPlaceholder("slides")
+        .setValue(this.plugin.settings.outputFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.outputFolder = value;
           await this.plugin.saveSettings();
         }));
   }

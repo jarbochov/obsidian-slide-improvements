@@ -1,6 +1,4 @@
-/* Obsidian Slide Improvements: Static styles only.
-   All dynamic properties (font sizes, paddings, accent color, etc.) are now injected by the plugin.
-*/
+/* Obsidian Slide Improvements: Only plugin controls heading colors inside .reveal, using unique variable names */
 
 /* Center all headers, left-align all other content */
 .reveal h1,
@@ -13,6 +11,15 @@
   justify-content: center !important;
 }
 
+/* Plugin-controlled heading colors with unique variable names */
+.reveal h1 { color: var(--slide-h1-color) !important; }
+.reveal h2 { color: var(--slide-h2-color) !important; }
+.reveal h3 { color: var(--slide-h3-color) !important; }
+.reveal h4 { color: var(--slide-h4-color) !important; }
+.reveal h5 { color: var(--slide-h5-color) !important; }
+.reveal h6 { color: var(--slide-h6-color) !important; }
+
+/* Left-align all other content */
 .reveal .slides,
 .reveal .slide,
 .reveal section,
@@ -67,13 +74,31 @@
   margin-top: 0 !important;
 }
 
-/* Add margin to all non-first headings (dynamic margin-top is injected by plugin) */
+/* Accent color for links */
+.reveal .slide a,
+.reveal section a {
+  color: var(--accent-color) !important;
+  text-decoration-color: var(--accent-color) !important;
+}
 
-/* FIX: Only apply horizontal padding to .slide for perfect centering (dynamic paddings are injected by plugin) */
+/* Accent color for horizontal rules */
+.reveal .slide hr,
+.reveal section hr {
+  border-color: var(--accent-color) !important;
+}
+
+/* Accent color for selected text */
+.reveal .slide ::selection,
+.reveal section ::selection {
+  background: var(--accent-color);
+  color: #fff;
+}
+
+/* Only apply horizontal padding to .slide for perfect centering (dynamic paddings are injected by plugin) */
 .reveal .slides,
 .reveal section {
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
 
-/* All font-sizes and paddings are now injected by the plugin's dynamic CSS. */
+/* All font-sizes and paddings are injected by the plugin's dynamic CSS. */
