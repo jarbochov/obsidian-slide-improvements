@@ -1,0 +1,20 @@
+{
+  "name": "obsidian-slide-improvements",
+  "version": "1.0.0",
+  "description": "An Obsidian plugin to quickly create presentation-ready slide notes.",
+  "author": "jarbochov",
+  "main": "main.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "obsidian-plugin",
+    "slides",
+    "presentation"
+  ],
+  "devDependencies": {
+    "obsidian": "^1.5.8",
+    "typescript": "^5.0.0"
+  },
+  "license": "MIT"
+}
