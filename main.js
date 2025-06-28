@@ -1,13 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const obsidian_1 = require("obsidian");
+import { Plugin, PluginSettingTab, Setting, Notice, MarkdownView, normalizePath } from "obsidian";
 const DEFAULT_SETTINGS = {
     enabled: true,
     outputFolder: "",
 };
+// Strip YAML frontmatter (--- ... ---)
 function stripFrontmatter(md) {
     return md.replace(/^---\n[\s\S]+?\n---\n?/m, "");
 }
+// Insert slide breaks before H1/H2 (except the first)
 function autoBreakSlides(md) {
     const lines = md.split('\n');
     let out = [];
@@ -22,45 +22,53 @@ function autoBreakSlides(md) {
     }
     return out.join('\n');
 }
-class AutoSlideBreakPlugin extends obsidian_1.Plugin {
+export default class ObsidianSlideImprovementsPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
         this.addCommand({
             id: 'create-slide-note',
             name: 'Create Slide Copy for Presentation',
             editorCallback: async (editor, view) => {
-                if (!(view instanceof obsidian_1.MarkdownView)) {
-                    new obsidian_1.Notice("No active Markdown file.");
+                if (!(view instanceof MarkdownView)) {
+                    new Notice("No active Markdown file.");
                     return;
                 }
                 const file = view.file;
                 let md = view.getViewData();
                 if (!this.settings.enabled) {
-                    new obsidian_1.Notice("Auto slide breaking is disabled in plugin settings.");
+                    new Notice("Obsidian Slide Improvements is disabled in plugin settings.");
                     return;
                 }
                 md = stripFrontmatter(md);
                 const processed = autoBreakSlides(md);
+                // Determine output folder and file name
                 let folder = this.settings.outputFolder.trim();
+                if (!file) {
+                    new Notice("No file context found.");
+                    return;
+                }
                 const originalBase = file.basename.replace(/[/\\?%*:|"<>]/g, "_");
                 let newFilename = `${originalBase} Slides.md`;
                 if (folder) {
-                    folder = (0, obsidian_1.normalizePath)(folder);
+                    folder = normalizePath(folder);
                     await this.app.vault.createFolder(folder).catch(() => { });
                     newFilename = folder + "/" + newFilename;
                 }
+                // Prevent accidental overwrite
                 let uniqueFilename = newFilename;
                 let counter = 2;
                 while (this.app.vault.getAbstractFileByPath(uniqueFilename)) {
                     uniqueFilename = newFilename.replace(/\.md$/, ` ${counter}.md`);
                     counter++;
                 }
+                // Create the new file
                 const newFile = await this.app.vault.create(uniqueFilename, processed);
+                // Open the new file in a new tab
                 await this.app.workspace.getLeaf(true).openFile(newFile);
-                new obsidian_1.Notice(`Slide copy created: ${uniqueFilename}`);
+                new Notice(`Slide copy created: ${uniqueFilename}`);
             }
         });
-        this.addSettingTab(new AutoSlideBreakSettingTab(this.app, this));
+        this.addSettingTab(new SlideImprovementsSettingTab(this.app, this));
     }
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -69,8 +77,7 @@ class AutoSlideBreakPlugin extends obsidian_1.Plugin {
         await this.saveData(this.settings);
     }
 }
-exports.default = AutoSlideBreakPlugin;
-class AutoSlideBreakSettingTab extends obsidian_1.PluginSettingTab {
+class SlideImprovementsSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
         this.plugin = plugin;
@@ -78,21 +85,21 @@ class AutoSlideBreakSettingTab extends obsidian_1.PluginSettingTab {
     display() {
         const { containerEl } = this;
         containerEl.empty();
-        containerEl.createEl("h2", { text: "Auto Slide Break for Reveal.js - Settings" });
-        new obsidian_1.Setting(containerEl)
-            .setName("Enable Auto Slide Breaks")
-            .setDesc("Automatically insert slide breaks at every H1 or H2 when creating a presentation copy.")
+        containerEl.createEl("h2", { text: "Obsidian Slide Improvements - Settings" });
+        new Setting(containerEl)
+            .setName("Enable plugin")
+            .setDesc("Enable or disable Obsidian Slide Improvements.")
             .addToggle(toggle => toggle
             .setValue(this.plugin.settings.enabled)
             .onChange(async (value) => {
             this.plugin.settings.enabled = value;
             await this.plugin.saveSettings();
         }));
-        new obsidian_1.Setting(containerEl)
-            .setName("Output Folder (optional)")
-            .setDesc("Where to save the generated slide files. Leave blank for vault root.")
+        new Setting(containerEl)
+            .setName("Output folder")
+            .setDesc("Folder to save generated slide notes (leave blank for vault root).")
             .addText(text => text
-            .setPlaceholder("e.g. Slides/Temp")
+            .setPlaceholder("slides")
             .setValue(this.plugin.settings.outputFolder)
             .onChange(async (value) => {
             this.plugin.settings.outputFolder = value;

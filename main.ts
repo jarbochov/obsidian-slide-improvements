@@ -1,13 +1,13 @@
 import { App, Plugin, PluginSettingTab, Setting, Notice, MarkdownView, TFile, normalizePath } from "obsidian";
 
-interface AutoSlideBreakSettings {
+interface SlideImprovementsSettings {
   enabled: boolean;
-  outputFolder: string; // Folder to save generated slides
+  outputFolder: string;
 }
 
-const DEFAULT_SETTINGS: AutoSlideBreakSettings = {
+const DEFAULT_SETTINGS: SlideImprovementsSettings = {
   enabled: true,
-  outputFolder: "", // Root by default
+  outputFolder: "",
 };
 
 // Strip YAML frontmatter (--- ... ---)
@@ -30,8 +30,8 @@ function autoBreakSlides(md: string): string {
   return out.join('\n');
 }
 
-export default class AutoSlideBreakPlugin extends Plugin {
-  settings: AutoSlideBreakSettings;
+export default class ObsidianSlideImprovementsPlugin extends Plugin {
+  settings!: SlideImprovementsSettings;
 
   async onload() {
     await this.loadSettings();
@@ -48,7 +48,7 @@ export default class AutoSlideBreakPlugin extends Plugin {
         let md = view.getViewData();
 
         if (!this.settings.enabled) {
-          new Notice("Auto slide breaking is disabled in plugin settings.");
+          new Notice("Obsidian Slide Improvements is disabled in plugin settings.");
           return;
         }
 
@@ -57,6 +57,10 @@ export default class AutoSlideBreakPlugin extends Plugin {
 
         // Determine output folder and file name
         let folder = this.settings.outputFolder.trim();
+        if (!file) {
+          new Notice("No file context found.");
+          return;
+        }
         const originalBase = file.basename.replace(/[/\\?%*:|"<>]/g, "_");
         let newFilename = `${originalBase} Slides.md`;
         if (folder) {
@@ -81,7 +85,7 @@ export default class AutoSlideBreakPlugin extends Plugin {
       }
     });
 
-    this.addSettingTab(new AutoSlideBreakSettingTab(this.app, this));
+    this.addSettingTab(new SlideImprovementsSettingTab(this.app, this));
   }
 
   async loadSettings() {
@@ -93,10 +97,10 @@ export default class AutoSlideBreakPlugin extends Plugin {
   }
 }
 
-class AutoSlideBreakSettingTab extends PluginSettingTab {
-  plugin: AutoSlideBreakPlugin;
+class SlideImprovementsSettingTab extends PluginSettingTab {
+  plugin: ObsidianSlideImprovementsPlugin;
 
-  constructor(app: App, plugin: AutoSlideBreakPlugin) {
+  constructor(app: App, plugin: ObsidianSlideImprovementsPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -105,31 +109,27 @@ class AutoSlideBreakSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Auto Slide Break for Reveal.js - Settings" });
+    containerEl.createEl("h2", { text: "Obsidian Slide Improvements - Settings" });
 
     new Setting(containerEl)
-      .setName("Enable Auto Slide Breaks")
-      .setDesc("Automatically insert slide breaks at every H1 or H2 when creating a presentation copy.")
-      .addToggle(toggle =>
-        toggle
-          .setValue(this.plugin.settings.enabled)
-          .onChange(async value => {
-            this.plugin.settings.enabled = value;
-            await this.plugin.saveSettings();
-          })
-      );
+      .setName("Enable plugin")
+      .setDesc("Enable or disable Obsidian Slide Improvements.")
+      .addToggle(toggle => toggle
+        .setValue(this.plugin.settings.enabled)
+        .onChange(async (value) => {
+          this.plugin.settings.enabled = value;
+          await this.plugin.saveSettings();
+        }));
 
     new Setting(containerEl)
-      .setName("Output Folder (optional)")
-      .setDesc("Where to save the generated slide files. Leave blank for vault root.")
-      .addText(text =>
-        text
-          .setPlaceholder("e.g. Slides/Temp")
-          .setValue(this.plugin.settings.outputFolder)
-          .onChange(async value => {
-            this.plugin.settings.outputFolder = value;
-            await this.plugin.saveSettings();
-          })
-      );
+      .setName("Output folder")
+      .setDesc("Folder to save generated slide notes (leave blank for vault root).")
+      .addText(text => text
+        .setPlaceholder("slides")
+        .setValue(this.plugin.settings.outputFolder)
+        .onChange(async (value) => {
+          this.plugin.settings.outputFolder = value;
+          await this.plugin.saveSettings();
+        }));
   }
 }
