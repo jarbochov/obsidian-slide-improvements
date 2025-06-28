@@ -1,0 +1,296 @@
+:root {
+  --accent-color: #A2CF80;
+}
+
+/* Center all headers, left-align all other content */
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4,
+.reveal h5,
+.reveal h6 {
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+.reveal .slides,
+.reveal .slide,
+.reveal section,
+.reveal p,
+.reveal ul,
+.reveal ol,
+.reveal pre,
+.reveal code,
+.reveal table,
+.reveal blockquote,
+.reveal div {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+/* Only left-align paras/lists after headings, not headings themselves */
+.reveal h1 + p,
+.reveal h1 + ul,
+.reveal h1 + ol,
+.reveal h2 + p,
+.reveal h2 + ul,
+.reveal h2 + ol,
+.reveal h3 + p,
+.reveal h3 + ul,
+.reveal h3 + ol,
+.reveal h4 + p,
+.reveal h4 + ul,
+.reveal h4 + ol,
+.reveal h5 + p,
+.reveal h5 + ul,
+.reveal h5 + ol,
+.reveal h6 + p,
+.reveal h6 + ul,
+.reveal h6 + ol {
+  text-align: left !important;
+  justify-content: flex-start !important;
+}
+
+/* Remove margin from the first heading of each type in each slide/section */
+.reveal .slide h1:first-of-type,
+.reveal .slide h2:first-of-type,
+.reveal .slide h3:first-of-type,
+.reveal .slide h4:first-of-type,
+.reveal .slide h5:first-of-type,
+.reveal .slide h6:first-of-type,
+.reveal section h1:first-of-type,
+.reveal section h2:first-of-type,
+.reveal section h3:first-of-type,
+.reveal section h4:first-of-type,
+.reveal section h5:first-of-type,
+.reveal section h6:first-of-type {
+  margin-top: 0 !important;
+}
+
+/* Add margin to all non-first headings of each type in each slide/section */
+.reveal .slide h1:not(:first-of-type),
+.reveal .slide h2:not(:first-of-type),
+.reveal .slide h3:not(:first-of-type),
+.reveal .slide h4:not(:first-of-type),
+.reveal .slide h5:not(:first-of-type),
+.reveal .slide h6:not(:first-of-type),
+.reveal section h1:not(:first-of-type),
+.reveal section h2:not(:first-of-type),
+.reveal section h3:not(:first-of-type),
+.reveal section h4:not(:first-of-type),
+.reveal section h5:not(:first-of-type),
+.reveal section h6:not(:first-of-type) {
+  margin-top: 2.5em !important;
+}
+
+/* FIX: Only apply horizontal padding to .slide for perfect centering */
+.reveal .slides,
+.reveal section {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+.reveal .slide {
+  padding-left: 3vw !important;
+  padding-right: 3vw !important;
+}
+
+/* Base font size */
+.reveal {
+  font-size: 1.6em;
+}
+
+/* Heading sizes */
+.reveal h1 {
+  font-size: 2em !important;
+  line-height: 1.1;
+}
+.reveal h2 {
+  font-size: 1.4em !important;
+  line-height: 1.1;
+}
+.reveal h3 {
+  font-size: 1.1em !important;
+  line-height: 1.1;
+}
+.reveal h4, .reveal h5, .reveal h6 {
+  font-size: 1em !important;
+  line-height: 1.1;
+}
+
+/* Hyperlink color customization */
+.reveal a,
+.reveal a:visited,
+.reveal a:active {
+  color: var(--accent-color) !important;
+}
+.reveal a:hover,
+.reveal a:focus {
+  color: #7EBB59 !important;
+  text-decoration: underline;
+}
+
+/* adds scrollbar */
+.slides {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  pointer-events: auto !important;
+}
+
+/* hide scroll bar */
+.slide ::-webkit-scrollbar {
+  display: none !important;
+}
+
+.reveal ul {
+  padding-bottom: 1.5%;
+}
+
+.reveal ol {
+  padding-bottom: 1.5%;
+}
+
+/* code styles */
+.reveal code {
+  max-height: fit-content !important; /* disable this if you want scrollable code blocks */
+  color: #ffad00;
+}
+
+/* code blocks */
+.reveal pre {
+  font-size: 0.8em;
+  min-height: 1em;
+  padding: 0.5em;
+  /* margin-left: -2.5%; */
+  /* width: 105%; */
+  /* max-width: 70%; */
+}
+
+/* move copy button to top right corner */
+.slide .copy-code-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  /* display: none !important; // hides the copy button */
+}
+
+/* blockquotes */
+.reveal blockquote {
+  border-left: 5px solid var(--background-modifier-border);
+  padding: 0 0 0 15px;
+  font-size: 0.9em;
+}
+
+.reveal blockquote>p {
+  margin: 0.5em 0;
+}
+
+/* Table Styles: smaller body font, bold/colored header, zebra even rows, responsive for dark/light themes */
+.reveal table {
+  width: 80%;
+  border: 1px solid hsl(0, 0%, 18%);
+  border-collapse: collapse;
+}
+
+/* Table body: smaller font size */
+.reveal table tbody,
+.reveal table tbody tr,
+.reveal table td {
+  font-size: 0.8em !important;
+}
+
+/* Table head row: background and text color (uses accent color for text), bold text, normal size */
+.reveal table thead tr th {
+  font-weight: bold !important;
+  border: 1px solid hsl(0, 0%, 18%);
+  background: #222 !important;
+  color: var(--accent-color) !important;
+  text-transform: uppercase;
+  font-size: .9em !important;
+}
+
+/* Zebra striping for even rows, responsive to theme */
+.reveal table tbody tr:nth-child(even) {
+  background: rgba(120, 120, 120, 0.2) !important;
+}
+
+/* Slightly lighter for light theme */
+@media (prefers-color-scheme: light) {
+  .reveal table thead tr th {
+    background: #e5e5e5 !important;
+    color: var(--accent-color) !important;
+  }
+  .reveal table tbody tr:nth-child(even) {
+    background: rgba(180, 180, 180, 0.2) !important;
+  }
+}
+
+/* Table cell borders */
+.reveal table>thead>tr>th,
+.reveal table>tbody>tr>td {
+  border: 1px solid hsl(0, 0%, 18%);
+}
+
+/* Table, th, td borders */
+.reveal table, th, td {
+  border: 1px solid hsl(0, 0%, 18%);
+}
+
+/*
+.reveal th, td {
+  min-width: 90px;
+  line-height: 1.5;
+}
+*/
+
+/* move left and right arrow button */
+.navigate-right {
+  /* bottom: 1.4em !important; */
+  right: 8em !important;
+}
+
+.navigate-left {
+  /* bottom: 1.4em !important; */
+  right: 15em !important;
+}
+
+/* Don't highlight Wikilinks */
+/*
+.reveal a.internal-link {
+    color: inherit;
+    pointer-events: none;
+}
+*/
+
+/* Progress bar and navigation arrows in link color */
+.reveal .progress {
+  background: color-mix(in srgb, var(--accent-color) 20%, transparent) !important;
+}
+.reveal .progress span {
+  background: var(--accent-color) !important;
+}
+.reveal .controls .navigate-right,
+.reveal .controls .navigate-left,
+.reveal .controls .navigate-up,
+.reveal .controls .navigate-down {
+  color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  fill: var(--accent-color) !important;
+}
+.reveal .controls .navigate-right svg,
+.reveal .controls .navigate-left svg,
+.reveal .controls .navigate-up svg,
+.reveal .controls .navigate-down svg {
+  stroke: var(--accent-color) !important;
+  fill: var(--accent-color) !important;
+}
+
+/* Ensure images always fit on the slide without overflowing */
+.reveal img {
+  max-width: 90vw !important;
+  max-height: 45vh !important;
+  width: auto !important;
+  height: auto !important;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
