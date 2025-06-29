@@ -122,3 +122,12 @@
   display: none !important;
   background: transparent !important;
 }
+
+/* Progress Bar and Arrows */
+.reveal .controls .controls-arrow {
+  color: var(--accent-color);
+}
+
+.reveal .progress {
+    color: var(--accent-color) !important;
+  }
