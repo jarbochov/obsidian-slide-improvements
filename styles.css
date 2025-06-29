@@ -102,3 +102,23 @@
 }
 
 /* All font-sizes and paddings are injected by the plugin's dynamic CSS. */
+
+
+/* --- Scrollbar adjustments for centered slides --- */
+
+/* Keep scrolling ability but hide the scrollbar for the .slides container */
+.reveal .slides {
+  overflow-y: auto !important;
+  scrollbar-width: none !important;             /* Firefox */
+  -ms-overflow-style: none !important;          /* IE and Edge */
+  padding-right: 16px;                          /* Adjust as needed for hidden scrollbar width */
+  box-sizing: border-box;
+}
+
+/* Chrome, Safari, Opera, Electron (Obsidian) */
+.reveal .slides::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
