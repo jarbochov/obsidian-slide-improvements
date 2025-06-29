@@ -95,11 +95,11 @@
 }
 
 /* Only apply horizontal padding to .slide for perfect centering (dynamic paddings are injected by plugin) */
-.reveal .slides,
+/*.reveal .slides,
 .reveal section {
   padding-left: 0 !important;
   padding-right: 0 !important;
-}
+}*/
 
 /* All font-sizes and paddings are injected by the plugin's dynamic CSS. */
 

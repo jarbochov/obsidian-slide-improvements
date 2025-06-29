@@ -1,9 +1,8 @@
-import { App, Plugin, PluginSettingTab, Setting, Notice, MarkdownView, TFile, normalizePath } from "obsidian";
+import { App, Plugin, PluginSettingTab, Setting, normalizePath, Notice, MarkdownView, TFile } from "obsidian";
 
 interface SlideImprovementsSettings {
   enabled: boolean;
   outputFolder: string;
-
   baseFontSize: string;
   h1FontSize: string;
   h2FontSize: string;
@@ -37,14 +36,9 @@ const DEFAULT_SETTINGS: SlideImprovementsSettings = {
   h6Color: "#FF69B4",
 };
 
-/**
- * Inject slide CSS with NO fallback for heading color variables.
- * Uses unique variable names to avoid conflicts, e.g. --slide-h1-color.
- */
 function injectSlideCss(settings: SlideImprovementsSettings) {
   const id = "obsidian-slide-improvements-styles";
   document.getElementById(id)?.remove();
-
   const styleTag = document.createElement("style");
   styleTag.id = id;
   styleTag.textContent = `
@@ -79,11 +73,17 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
     .reveal .slide h4, .reveal section h4 { color: var(--slide-h4-color) !important; }
     .reveal .slide h5, .reveal section h5 { color: var(--slide-h5-color) !important; }
     .reveal .slide h6, .reveal section h6 { color: var(--slide-h6-color) !important; }
-    .reveal .slide {
+    /* Apply padding to all likely slide containers */
+    .reveal .slide,
+    .reveal section,
+    .reveal .slides > section {
       padding-left: var(--slide-padding, 3vw) !important;
       padding-right: var(--slide-padding, 3vw) !important;
+    }
+    .reveal .slide {
       ${settings.scrollableSlides ? "overflow-y: auto !important; max-height: 100vh;" : ""}
     }
+    /* --- Heading Top Margin: Applies to all non-first headings --- */
     .reveal .slide h1:not(:first-of-type),
     .reveal .slide h2:not(:first-of-type),
     .reveal .slide h3:not(:first-of-type),
@@ -201,6 +201,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.enabled = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     // --- Scrolling Section ---
@@ -213,6 +214,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.scrollableSlides = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     // --- Sizing Section ---
@@ -225,6 +227,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.baseFontSize = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     new Setting(containerEl)
@@ -235,6 +238,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h1FontSize = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     new Setting(containerEl)
@@ -245,6 +249,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h2FontSize = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     new Setting(containerEl)
@@ -255,6 +260,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.slidePadding = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     new Setting(containerEl)
@@ -265,6 +271,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.headingMarginTop = value;
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     // --- Colors Section ---
@@ -277,6 +284,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.accentColor = value || "#A2CF80";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     new Setting(containerEl)
@@ -287,6 +295,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h1Color = value || "#A2CF80";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
     new Setting(containerEl)
       .setName("H2 Color")
@@ -296,6 +305,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h2Color = value || "#FFD700";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
     new Setting(containerEl)
       .setName("H3 Color")
@@ -305,6 +315,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h3Color = value || "#FF8C00";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
     new Setting(containerEl)
       .setName("H4 Color")
@@ -314,6 +325,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h4Color = value || "#1E90FF";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
     new Setting(containerEl)
       .setName("H5 Color")
@@ -323,6 +335,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h5Color = value || "#BA55D3";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
     new Setting(containerEl)
       .setName("H6 Color")
@@ -332,6 +345,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
         .onChange(async (value) => {
           this.plugin.settings.h6Color = value || "#FF69B4";
           await this.plugin.saveSettings();
+          injectSlideCss(this.plugin.settings);
         }));
 
     // --- Output Section ---
