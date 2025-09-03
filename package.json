@@ -1,6 +1,6 @@
 {
   "name": "obsidian-slide-improvements",
-  "version": "3.1.0",
+  "version": "0.4",
   "description": "Quickly create presentation-ready slide notes in Obsidian with automatic slide breaks before H1/H2 headings.",
   "author": "jarbochov",
   "main": "main.js",
@@ -13,7 +13,7 @@
     "presentation"
   ],
   "devDependencies": {
-    "obsidian": "^1.5.8",
+    "obsidian": "^1.9.10",
     "typescript": "^5.0.0"
   },
   "license": "MIT"
