@@ -13,7 +13,7 @@
     "presentation"
   ],
   "devDependencies": {
-    "obsidian": "^1.9.0",
+    "obsidian": "^1.8.7",
     "typescript": "^5.0.0"
   },
   "license": "MIT"
