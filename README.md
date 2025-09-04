@@ -1,4 +1,4 @@
-# Obsidian Slide Improvements
+# Slide Improvements
 
 A plugin for [Obsidian](https://obsidian.md) that enhances the appearance, usability, and export of Markdown slides (Reveal.js format) created using the native Slides feature.
 
