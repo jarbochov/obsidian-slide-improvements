@@ -154,8 +154,13 @@ class ObsidianSlideImprovementsPlugin extends obsidian_1.Plugin {
                     counter++;
                 }
                 const newFile = await this.app.vault.create(uniqueFilename, processed);
-                await this.app.workspace.getLeaf(true).openFile(newFile);
-                new obsidian_1.Notice(`Slide copy created: ${uniqueFilename}`);
+                if (newFile instanceof obsidian_1.TFile) {
+                    await this.app.workspace.getLeaf(true).openFile(newFile);
+                    new obsidian_1.Notice(`Slide copy created: ${uniqueFilename}`);
+                }
+                else {
+                    new obsidian_1.Notice("Could not open the file. It may be a folder or an unsupported type.");
+                }
             }
         });
         this.addSettingTab(new SlideImprovementsSettingTab(this.app, this));
