@@ -31,207 +31,326 @@ function injectSlideCss(settings) {
     const styleTag = document.createElement("style");
     styleTag.id = id;
     let desktopCss = "", mobileCss = "";
-    // Desktop/tablet styling (only if enabled)
+    // --- Desktop/tablet styling ---
     if (settings.enableStyling) {
         desktopCss = `
-    :root {
-      --accent-color: ${settings.accentColor};
-      --slide-h1-color: ${settings.h1Color};
-      --slide-h2-color: ${settings.h2Color};
-      --slide-h3-color: ${settings.h3Color};
-      --slide-h4-color: ${settings.h4Color};
-      --slide-h5-color: ${settings.h5Color};
-      --slide-h6-color: ${settings.h6Color};
-      --base-font-size: ${settings.baseFontSize};
-      --h1-font-size: ${settings.h1FontSize};
-      --h2-font-size: ${settings.h2FontSize};
-      --slide-padding: ${settings.slidePadding};
-      --heading-margin-top: ${settings.headingMarginTop};
-    }
-    .reveal {
-      font-size: var(--base-font-size, 1.6em);
-    }
-    .reveal .slides > section {
-      padding-left: var(--slide-padding, 3vw) !important;
-      padding-right: var(--slide-padding, 3vw) !important;
-    }
-    .reveal .slides > section h1 {
-      font-size: var(--h1-font-size, 2em) !important;
-      color: var(--slide-h1-color) !important;
-      line-height: 1.1;
-    }
-    .reveal .slides > section h2 {
-      font-size: var(--h2-font-size, 1.4em) !important;
-      color: var(--slide-h2-color) !important;
-      line-height: 1.1;
-    }
-    .reveal .slides > section h3 { color: var(--slide-h3-color) !important; }
-    .reveal .slides > section h4 { color: var(--slide-h4-color) !important; }
-    .reveal .slides > section h5 { color: var(--slide-h5-color) !important; }
-    .reveal .slides > section h6 { color: var(--slide-h6-color) !important; }
-    .reveal .slides > section h1:not(:first-of-type),
-    .reveal .slides > section h2:not(:first-of-type),
-    .reveal .slides > section h3:not(:first-of-type),
-    .reveal .slides > section h4:not(:first-of-type),
-    .reveal .slides > section h5:not(:first-of-type),
-    .reveal .slides > section h6:not(:first-of-type) {
-      margin-top: var(--heading-margin-top, 2.5em) !important;
-    }
+      :root {
+        --accent-color: ${settings.accentColor};
+        --slide-h1-color: ${settings.h1Color};
+        --slide-h2-color: ${settings.h2Color};
+        --slide-h3-color: ${settings.h3Color};
+        --slide-h4-color: ${settings.h4Color};
+        --slide-h5-color: ${settings.h5Color};
+        --slide-h6-color: ${settings.h6Color};
+        --base-font-size: ${settings.baseFontSize};
+        --h1-font-size: ${settings.h1FontSize};
+        --h2-font-size: ${settings.h2FontSize};
+        --slide-padding: ${settings.slidePadding};
+        --heading-margin-top: ${settings.headingMarginTop};
+      }
+      .reveal {
+        font-size: var(--base-font-size, 1.6em);
+      }
+      .reveal .slides > section {
+        padding-left: var(--slide-padding, 3vw) !important;
+        padding-right: var(--slide-padding, 3vw) !important;
+      }
+      .reveal .slides > section h1 {
+        font-size: var(--h1-font-size, 2em) !important;
+        color: var(--slide-h1-color) !important;
+        line-height: 1.1;
+      }
+      .reveal .slides > section h2 {
+        font-size: var(--h2-font-size, 1.4em) !important;
+        color: var(--slide-h2-color) !important;
+        line-height: 1.1;
+      }
+      .reveal .slides > section h3 { color: var(--slide-h3-color) !important; }
+      .reveal .slides > section h4 { color: var(--slide-h4-color) !important; }
+      .reveal .slides > section h5 { color: var(--slide-h5-color) !important; }
+      .reveal .slides > section h6 { color: var(--slide-h6-color) !important; }
+      .reveal .slides > section h1:not(:first-of-type),
+      .reveal .slides > section h2:not(:first-of-type),
+      .reveal .slides > section h3:not(:first-of-type),
+      .reveal .slides > section h4:not(:first-of-type),
+      .reveal .slides > section h5:not(:first-of-type),
+      .reveal .slides > section h6:not(:first-of-type) {
+        margin-top: var(--heading-margin-top, 2.5em) !important;
+      }
     `;
     }
-    // Desktop/tablet scrolling independent of mobile
+    // --- Desktop/tablet scrolling ---
     if (settings.scrollableSlides) {
         desktopCss += `
-    /* Only enable scrolling on desktop, don't set height or max-height */
-    @media (pointer: fine), (hover: hover) {
-      .reveal .slides > section {
-        overflow-y: auto !important;
-        max-height: 100% !important;
-        scrollbar-width: none !important;
-        -ms-overflow-style: none !important;
+      @media (pointer: fine), (hover: hover) {
+        .reveal .slides > section {
+          overflow-y: auto !important;
+          max-height: 100% !important;
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        .reveal .slides > section::-webkit-scrollbar {
+          width: 0 !important;
+          height: 0 !important;
+          display: none !important;
+          background: transparent !important;
+        }
       }
-      .reveal .slides > section::-webkit-scrollbar {
-        width: 0 !important;
-        height: 0 !important;
-        display: none !important;
-        background: transparent !important;
+      /* Improved Tablet landscape fix (iPad and large tablets up to 1400px): ensure all parents fill viewport and enable smooth scrolling */
+      @media (pointer: fine) and (min-width: 768px) and (max-width: 1400px) and (orientation: landscape) {
+        .reveal,
+        .reveal .viewport,
+        .reveal .slides,
+        .reveal .slides .stack,
+        .reveal .slides > section,
+        .reveal .slides > section.present {
+          height: 100vh !important;
+          min-height: 100vh !important;
+          max-height: 100vh !important;
+        }
+        .reveal .slides > section,
+        .reveal .slides > section.present {
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        .reveal .slides > section::-webkit-scrollbar,
+        .reveal .slides > section.present::-webkit-scrollbar {
+          width: 0 !important;
+          height: 0 !important;
+          display: none !important;
+          background: transparent !important;
+        }
       }
-    }
     `;
     }
     else {
         desktopCss += `
-    @media (pointer: fine), (hover: hover) {
-      .reveal .slides > section {
-        overflow-y: unset !important;
-        max-height: unset !important;
-        scrollbar-width: unset !important;
-        -ms-overflow-style: unset !important;
+      @media (pointer: fine), (hover: hover) {
+        .reveal .slides > section {
+          overflow-y: unset !important;
+          max-height: unset !important;
+          scrollbar-width: unset !important;
+          -ms-overflow-style: unset !important;
+        }
       }
-    }
     `;
     }
-    // Mobile-specific styling
+    // --- Mobile-specific styling via media queries (let browser decide!) ---
     if (settings.enableMobileStyling) {
         // Shared part for all mobile
         mobileCss += `
-    @media (pointer: coarse) and (max-width: 900px), (pointer: coarse) and (max-height: 600px) {
-      .reveal,
-      .reveal .viewport,
-      .reveal .slides,
-      .reveal .slides .stack,
-      .reveal .slides > section,
-      .reveal .slides > section.present {
-        width: 100vw !important;
-        min-width: 100vw !important;
-        max-width: 100vw !important;
-        height: 100vh !important;
-        min-height: 100vh !important;
-        max-height: 100vh !important;
-        left: 0 !important;
-        top: 0 !important;
-        margin: 0 !important;
-        box-sizing: border-box !important;
-        position: fixed !important;
-        transform: none !important;
-        z-index: 10 !important;
-        overflow-x: hidden !important;
-        padding: 0 !important;
-        padding-bottom: 0 !important;
+      @media (pointer: coarse) and (max-width: 900px), (pointer: coarse) and (max-height: 600px) {
+        .reveal,
+        .reveal .viewport,
+        .reveal .slides,
+        .reveal .slides .stack,
+        .reveal .slides > section,
+        .reveal .slides > section.present {
+          width: 100vw !important;
+          min-width: 100vw !important;
+          max-width: 100vw !important;
+          height: 100vh !important;
+          min-height: 100vh !important;
+          max-height: 100vh !important;
+          left: 0 !important;
+          top: 0 !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+          position: fixed !important;
+          transform: none !important;
+          z-index: 10 !important;
+          overflow-x: hidden !important;
+          padding: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        .reveal .slides,
+        .reveal .slides .stack {
+          display: block !important;
+          align-items: flex-start !important;
+          justify-content: flex-start !important;
+        }
+        .slides-close-btn {
+          top: 40px !important;
+          right: 40px !important;
+          width: 48px !important;
+          height: 48px !important;
+          font-size: 2em !important;
+          z-index: 9999 !important;
+          position: fixed !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          pointer-events: all !important;
+          touch-action: manipulation !important;
+          opacity: 0.4 !important;
+          transition: opacity 0.2s !important;
+          background: none !important;
+          border-radius: 0 !important;
+        }
+        .slides-close-btn:hover,
+        .slides-close-btn:active,
+        .slides-close-btn:focus {
+          opacity: 0.8 !important;
+        }
+        .slides-close-btn > * {
+          width: 1.5em !important;
+          height: 1.5em !important;
+          font-size: 1.5em !important;
+        }
+        .reveal .backgrounds, .reveal .progress, .reveal .controls {
+          display: none !important;
+        }
       }
-      .reveal .slides,
-      .reveal .slides .stack {
-        display: block !important;
-        align-items: flex-start !important;
-        justify-content: flex-start !important;
-      }
-      .slides-close-btn {
-        top: 40px !important;
-        right: 40px !important;
-        width: 48px !important;
-        height: 48px !important;
-        font-size: 2em !important;
-        z-index: 9999 !important;
-        position: fixed !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        pointer-events: all !important;
-        touch-action: manipulation !important;
-        opacity: 0.4 !important;
-        transition: opacity 0.2s !important;
-        background: none !important;
-        border-radius: 0 !important;
-      }
-      .slides-close-btn:hover,
-      .slides-close-btn:active,
-      .slides-close-btn:focus {
-        opacity: 0.8 !important;
-      }
-      .slides-close-btn > * {
-        width: 1.5em !important;
-        height: 1.5em !important;
-        font-size: 1.5em !important;
-      }
-      .reveal .backgrounds, .reveal .progress, .reveal .controls {
-        display: none !important;
-      }
-    }
     `;
         // Portrait (vertical) specific
         mobileCss += `
-    @media (pointer: coarse) and (max-width: 900px) and (orientation: portrait), (pointer: coarse) and (max-height: 600px) and (orientation: portrait) {
-      .reveal {
-        font-size: ${settings.mobileFontSizeVertical} !important;
-      }
-      .reveal .slides > section.present {
-        min-height: 100vh !important;
-        height: 100vh !important;
-        ${settings.mobileScrollableSlides
+      @media (pointer: coarse) and (max-width: 900px) and (orientation: portrait), (pointer: coarse) and (max-height: 600px) and (orientation: portrait) {
+        .reveal {
+          font-size: ${settings.mobileFontSizeVertical} !important;
+        }
+        .reveal .slides > section.present {
+          min-height: 100vh !important;
+          height: 100vh !important;
+          ${settings.mobileScrollableSlides
             ? "overflow-y: auto !important;"
             : "overflow-y: hidden !important;"}
-        padding-left: 6vw !important;
-        padding-right: 6vw !important;
-        ${settings.centerMobileVertically
+          padding-left: 6vw !important;
+          padding-right: 6vw !important;
+          padding-top: max(3vw, env(safe-area-inset-top, 20px)) !important;
+          padding-bottom: max(3vw, env(safe-area-inset-bottom, 20px)) !important;
+          ${settings.centerMobileVertically
             ? `
-          padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+            `
+            : `
+            display: block !important;
+            `}
+          background: none !important;
+        }
+      }
+    `;
+        // Landscape (horizontal) specific
+        mobileCss += `
+      @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape), (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+        .reveal {
+          font-size: ${settings.mobileFontSizeHorizontal} !important;
+        }
+        .reveal .slides > section.present {
+          min-height: 100vh !important;
+          height: 100vh !important;
+          ${settings.mobileScrollableSlides
+            ? `
+          overflow-y: auto !important;
+          display: block !important;
+          `
+            : `
+          overflow-y: hidden !important;
           display: flex !important;
           flex-direction: column !important;
           align-items: center !important;
           justify-content: center !important;
+          `}
+          padding-left: 6vw !important;
+          padding-right: 6vw !important;
+          padding-top: max(3vw, env(safe-area-inset-top, 20px)) !important;
+          padding-bottom: max(3vw, env(safe-area-inset-bottom, 20px)) !important;
+          background: none !important;
+        }
+      }
+    `;
+        // Tablet landscape: treat like mobile slides (up to 1400px)
+        mobileCss += `
+      @media (min-width: 768px) and (max-width: 1400px) and (orientation: landscape) {
+        .reveal,
+        .reveal .viewport,
+        .reveal .slides,
+        .reveal .slides .stack,
+        .reveal .slides > section,
+        .reveal .slides > section.present {
+          width: 100vw !important;
+          min-width: 100vw !important;
+          max-width: 100vw !important;
+          height: 100vh !important;
+          min-height: 100vh !important;
+          max-height: 100vh !important;
+          left: 0 !important;
+          top: 0 !important;
+          margin: 0 !important;
+          box-sizing: border-box !important;
+          position: fixed !important;
+          transform: none !important;
+          z-index: 10 !important;
+          overflow-x: hidden !important;
+          padding: 0 !important;
+          padding-bottom: 0 !important;
+        }
+        .reveal .slides,
+        .reveal .slides .stack {
+          display: block !important;
+          align-items: flex-start !important;
+          justify-content: flex-start !important;
+        }
+        .slides-close-btn {
+          top: 40px !important;
+          right: 40px !important;
+          width: 48px !important;
+          height: 48px !important;
+          font-size: 2em !important;
+          z-index: 9999 !important;
+          position: fixed !important;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          pointer-events: all !important;
+          touch-action: manipulation !important;
+          opacity: 0.4 !important;
+          transition: opacity 0.2s !important;
+          background: none !important;
+          border-radius: 0 !important;
+        }
+        .slides-close-btn:hover,
+        .slides-close-btn:active,
+        .slides-close-btn:focus {
+          opacity: 0.8 !important;
+        }
+        .slides-close-btn > * {
+          width: 1.5em !important;
+          height: 1.5em !important;
+          font-size: 1.5em !important;
+        }
+        .reveal .backgrounds, .reveal .progress, .reveal .controls {
+          display: none !important;
+        }
+        .reveal {
+          font-size: ${settings.mobileFontSizeHorizontal} !important;
+        }
+        .reveal .slides > section.present {
+          min-height: 100vh !important;
+          height: 100vh !important;
+          ${settings.mobileScrollableSlides
+            ? `
+          overflow-y: auto !important;
+          display: block !important;
           `
             : `
-          padding-top: max(6vw, env(safe-area-inset-top, 28px)) !important;
-          display: block !important;
+          overflow-y: hidden !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
           `}
-        padding-bottom: 0 !important;
-        background: none !important;
+          padding-left: 6vw !important;
+          padding-right: 6vw !important;
+          padding-top: max(3vw, env(safe-area-inset-top, 20px)) !important;
+          padding-bottom: max(3vw, env(safe-area-inset-bottom, 20px)) !important;
+          background: none !important;
+        }
       }
-    }
-    `;
-        // Landscape (horizontal) specific
-        mobileCss += `
-    @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape), (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
-      .reveal {
-        font-size: ${settings.mobileFontSizeHorizontal} !important;
-      }
-      .reveal .slides > section.present {
-        min-height: 100vh !important;
-        height: 100vh !important;
-        ${settings.mobileScrollableSlides
-            ? "overflow-y: auto !important;"
-            : "overflow-y: hidden !important;"}
-        padding-left: 6vw !important;
-        padding-right: 6vw !important;
-        padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding-bottom: 0 !important;
-        background: none !important;
-      }
-    }
     `;
     }
     styleTag.textContent = desktopCss + mobileCss;
@@ -241,6 +360,9 @@ class ObsidianSlideImprovementsPlugin extends obsidian_1.Plugin {
     async onload() {
         await this.loadSettings();
         injectSlideCss(this.settings);
+        // Re-inject CSS on window resize or orientation change for device rotation/dynamic breakpoints
+        window.addEventListener("resize", () => injectSlideCss(this.settings));
+        window.addEventListener("orientationchange", () => injectSlideCss(this.settings));
         this.addCommand({
             id: 'create-slide-note',
             name: 'Create Slide Copy for Presentation',
