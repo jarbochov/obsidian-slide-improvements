@@ -16,6 +16,12 @@ interface SlideImprovementsSettings {
   h4Color: string;
   h5Color: string;
   h6Color: string;
+  // Mobile
+  enableMobileStyling: boolean;
+  mobileFontSizeVertical: string;
+  mobileFontSizeHorizontal: string;
+  mobileScrollableSlides: boolean;
+  centerMobileVertically: boolean;
 }
 
 const DEFAULT_SETTINGS: SlideImprovementsSettings = {
@@ -34,17 +40,27 @@ const DEFAULT_SETTINGS: SlideImprovementsSettings = {
   h4Color: "#1E90FF",
   h5Color: "#BA55D3",
   h6Color: "#FF69B4",
+  enableMobileStyling: true,
+  mobileFontSizeVertical: "4vw",
+  mobileFontSizeHorizontal: "3vw",
+  mobileScrollableSlides: true,
+  centerMobileVertically: false
 };
 
 function injectSlideCss(settings: SlideImprovementsSettings) {
   const id = "obsidian-slide-improvements-styles";
   document.getElementById(id)?.remove();
 
-  if (!settings.enableStyling) return;
+  if (!settings.enableStyling && !settings.enableMobileStyling) return;
 
   const styleTag = document.createElement("style");
   styleTag.id = id;
-  styleTag.textContent = `
+
+  let desktopCss = "", mobileCss = "";
+
+  // Desktop/tablet styling (only if enabled)
+  if (settings.enableStyling) {
+    desktopCss = `
     :root {
       --accent-color: ${settings.accentColor};
       --slide-h1-color: ${settings.h1Color};
@@ -88,41 +104,165 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
     .reveal .slides > section h6:not(:first-of-type) {
       margin-top: var(--heading-margin-top, 2.5em) !important;
     }
-  `;
-  document.head.appendChild(styleTag);
-}
+    `;
+  }
 
-function injectScrollCss(scrollable: boolean) {
-  const id = "obsidian-slide-improvements-scroll-styles";
-  document.getElementById(id)?.remove();
-
-  const styleTag = document.createElement("style");
-  styleTag.id = id;
-  styleTag.textContent = `
+  // Desktop/tablet scrolling independent of mobile
+  if (settings.scrollableSlides) {
+    desktopCss += `
     .reveal .slides > section {
-      ${scrollable
-        ? `
-          overflow-y: auto !important;
-          max-height: 100vh !important;
-          scrollbar-width: none !important;           /* Firefox */
-          -ms-overflow-style: none !important;        /* IE and Edge */
-        `
-        : `
-          overflow-y: unset !important;
-          max-height: unset !important;
-          scrollbar-width: unset !important;
-          -ms-overflow-style: unset !important;
-        `}
+      overflow-y: auto !important;
+      max-height: 100vh !important;
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
     }
-    ${scrollable ? `
     .reveal .slides > section::-webkit-scrollbar {
       width: 0 !important;
       height: 0 !important;
       display: none !important;
       background: transparent !important;
     }
-    ` : ""}
-  `;
+    `;
+  } else {
+    desktopCss += `
+    .reveal .slides > section {
+      overflow-y: unset !important;
+      max-height: unset !important;
+      scrollbar-width: unset !important;
+      -ms-overflow-style: unset !important;
+    }
+    `;
+  }
+
+  // Mobile-specific styling
+  if (settings.enableMobileStyling) {
+    // Shared part for all mobile
+    mobileCss += `
+    @media (pointer: coarse) and (max-width: 900px), (pointer: coarse) and (max-height: 600px) {
+      .reveal,
+      .reveal .viewport,
+      .reveal .slides,
+      .reveal .slides .stack,
+      .reveal .slides > section,
+      .reveal .slides > section.present {
+        width: 100vw !important;
+        min-width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        max-height: 100vh !important;
+        left: 0 !important;
+        top: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        position: fixed !important;
+        transform: none !important;
+        z-index: 10 !important;
+        overflow-x: hidden !important;
+        padding: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      .reveal .slides,
+      .reveal .slides .stack {
+        display: block !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+      }
+      .slides-close-btn {
+        top: 40px !important;
+        right: 40px !important;
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 2em !important;
+        z-index: 9999 !important;
+        position: fixed !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        pointer-events: all !important;
+        touch-action: manipulation !important;
+        opacity: 0.4 !important;
+        transition: opacity 0.2s !important;
+        background: none !important;
+        border-radius: 0 !important;
+      }
+      .slides-close-btn:hover,
+      .slides-close-btn:active,
+      .slides-close-btn:focus {
+        opacity: 0.8 !important;
+      }
+      .slides-close-btn > * {
+        width: 1.5em !important;
+        height: 1.5em !important;
+        font-size: 1.5em !important;
+      }
+      .reveal .backgrounds, .reveal .progress, .reveal .controls {
+        display: none !important;
+      }
+    }
+    `;
+
+    // Portrait (vertical) specific
+    mobileCss += `
+    @media (pointer: coarse) and (max-width: 900px) and (orientation: portrait), (pointer: coarse) and (max-height: 600px) and (orientation: portrait) {
+      .reveal {
+        font-size: ${settings.mobileFontSizeVertical} !important;
+      }
+      .reveal .slides > section.present {
+        min-height: 100vh !important;
+        height: 100vh !important;
+        ${settings.mobileScrollableSlides
+          ? "overflow-y: auto !important;"
+          : "overflow-y: hidden !important;"}
+        padding-left: 6vw !important;
+        padding-right: 6vw !important;
+        ${
+          settings.centerMobileVertically
+            ? `
+          padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          `
+            : `
+          padding-top: max(6vw, env(safe-area-inset-top, 28px)) !important;
+          display: block !important;
+          `
+        }
+        padding-bottom: 0 !important;
+        background: none !important;
+      }
+    }
+    `;
+
+    // Landscape (horizontal) specific
+    mobileCss += `
+    @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape), (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+      .reveal {
+        font-size: ${settings.mobileFontSizeHorizontal} !important;
+      }
+      .reveal .slides > section.present {
+        min-height: 100vh !important;
+        height: 100vh !important;
+        ${settings.mobileScrollableSlides
+          ? "overflow-y: auto !important;"
+          : "overflow-y: hidden !important;"}
+        padding-left: 6vw !important;
+        padding-right: 6vw !important;
+        padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding-bottom: 0 !important;
+        background: none !important;
+      }
+    }
+    `;
+  }
+
+  styleTag.textContent = desktopCss + mobileCss;
   document.head.appendChild(styleTag);
 }
 
@@ -132,7 +272,6 @@ export default class ObsidianSlideImprovementsPlugin extends Plugin {
   async onload() {
     await this.loadSettings();
     injectSlideCss(this.settings);
-    injectScrollCss(this.settings.scrollableSlides);
 
     this.addCommand({
       id: 'create-slide-note',
@@ -144,8 +283,6 @@ export default class ObsidianSlideImprovementsPlugin extends Plugin {
         }
         const file = view.file;
         let md = view.getViewData();
-
-        // Styling enable/disable does not affect the command
 
         // Remove YAML frontmatter
         md = md.replace(/^---\n[\s\S]+?\n---\n?/m, "");
@@ -200,7 +337,6 @@ export default class ObsidianSlideImprovementsPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
     injectSlideCss(this.settings);
-    injectScrollCss(this.settings.scrollableSlides);
   }
 }
 
@@ -224,7 +360,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
     // Enable Styling
     new Setting(containerEl)
       .setName("Enable Styling")
-      .setDesc("Enable or disable all slide appearance modifications (except scrolling).")
+      .setDesc("Enable or disable all slide appearance modifications (except scrolling and mobile).")
       .addToggle(toggle =>
         toggle
           .setValue(this.plugin.settings.enableStyling)
@@ -238,7 +374,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
     // Scrollable Slides
     new Setting(containerEl)
       .setName("Scrollable slides")
-      .setDesc("Allow slides to scroll vertically when content overflows. This works even if styling is off.")
+      .setDesc("Allow slides to scroll vertically when content overflows (desktop/tablet).")
       .addToggle(toggle =>
         toggle
           .setValue(this.plugin.settings.scrollableSlides)
@@ -400,6 +536,68 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
             .setValue(this.plugin.settings.h6Color || "#FF69B4")
             .onChange(async value => {
               this.plugin.settings.h6Color = value || "#FF69B4";
+              await this.plugin.saveSettings();
+            })
+        );
+    }
+
+    // --- Mobile Section ---
+    containerEl.createEl("h3", { text: "Mobile" });
+    new Setting(containerEl)
+      .setName("Enable Mobile Styling")
+      .setDesc("Enable custom mobile presentation styling (scaling, close icon, etc).")
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.enableMobileStyling)
+          .onChange(async value => {
+            this.plugin.settings.enableMobileStyling = value;
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+
+    if (this.plugin.settings.enableMobileStyling) {
+      new Setting(containerEl)
+        .setName("Mobile font size (vertical/portrait)")
+        .setDesc("Base font size for slides in vertical (portrait) mobile presentation mode (e.g., 4vw).")
+        .addText(text =>
+          text
+            .setValue(this.plugin.settings.mobileFontSizeVertical)
+            .onChange(async value => {
+              this.plugin.settings.mobileFontSizeVertical = value;
+              await this.plugin.saveSettings();
+            })
+        );
+      new Setting(containerEl)
+        .setName("Mobile font size (horizontal/landscape)")
+        .setDesc("Base font size for slides in horizontal (landscape) mobile presentation mode (e.g., 3vw).")
+        .addText(text =>
+          text
+            .setValue(this.plugin.settings.mobileFontSizeHorizontal)
+            .onChange(async value => {
+              this.plugin.settings.mobileFontSizeHorizontal = value;
+              await this.plugin.saveSettings();
+            })
+        );
+      new Setting(containerEl)
+        .setName("Mobile Scrollable Slides")
+        .setDesc("Allow slides to scroll vertically when content overflows (mobile only).")
+        .addToggle(toggle =>
+          toggle
+            .setValue(this.plugin.settings.mobileScrollableSlides)
+            .onChange(async value => {
+              this.plugin.settings.mobileScrollableSlides = value;
+              await this.plugin.saveSettings();
+            })
+        );
+      new Setting(containerEl)
+        .setName("Center content vertically on mobile")
+        .setDesc("If enabled, the content of each slide is centered vertically in mobile mode (if content fits).")
+        .addToggle(toggle =>
+          toggle
+            .setValue(this.plugin.settings.centerMobileVertically)
+            .onChange(async value => {
+              this.plugin.settings.centerMobileVertically = value;
               await this.plugin.saveSettings();
             })
         );
