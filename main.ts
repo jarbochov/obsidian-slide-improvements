@@ -58,7 +58,7 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
 
   let desktopCss = "", mobileCss = "";
 
-  // Desktop (only style, not layout)
+  // Desktop/tablet styling (only if enabled)
   if (settings.enableStyling) {
     desktopCss = `
     :root {
@@ -81,7 +81,6 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
     .reveal .slides > section {
       padding-left: var(--slide-padding, 3vw) !important;
       padding-right: var(--slide-padding, 3vw) !important;
-      ${settings.scrollableSlides ? "overflow-y: auto !important;" : ""}
     }
     .reveal .slides > section h1 {
       font-size: var(--h1-font-size, 2em) !important;
@@ -108,12 +107,43 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
     `;
   }
 
+  // Desktop/tablet scrolling independent of mobile
+  if (settings.scrollableSlides) {
+    desktopCss += `
+    /* Only enable scrolling on desktop, don't set height or max-height */
+    @media (pointer: fine), (hover: hover) {
+      .reveal .slides > section {
+        overflow-y: auto !important;
+        max-height: 100% !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+      }
+      .reveal .slides > section::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+        display: none !important;
+        background: transparent !important;
+      }
+    }
+    `;
+  } else {
+    desktopCss += `
+    @media (pointer: fine), (hover: hover) {
+      .reveal .slides > section {
+        overflow-y: unset !important;
+        max-height: unset !important;
+        scrollbar-width: unset !important;
+        -ms-overflow-style: unset !important;
+      }
+    }
+    `;
+  }
+
   // Mobile-specific styling
   if (settings.enableMobileStyling) {
     // Shared part for all mobile
     mobileCss += `
-    @media (pointer: coarse) and (max-width: 900px), 
-           (pointer: coarse) and (max-height: 600px) {
+    @media (pointer: coarse) and (max-width: 900px), (pointer: coarse) and (max-height: 600px) {
       .reveal,
       .reveal .viewport,
       .reveal .slides,
@@ -142,18 +172,6 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
         display: block !important;
         align-items: flex-start !important;
         justify-content: flex-start !important;
-      }
-      /* Always apply top safe-area padding to .present on mobile */
-      .reveal .slides > section.present {
-        padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
-      }
-      /* Centering only on wrapper, not section */
-      .reveal .slides > section.present .slide-center-content {
-        min-height: calc(100vh - max(2vw, env(safe-area-inset-top, 20px))) !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: center !important;
-        justify-content: center !important;
       }
       .slides-close-btn {
         top: 40px !important;
@@ -191,8 +209,7 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
 
     // Portrait (vertical) specific
     mobileCss += `
-    @media (pointer: coarse) and (max-width: 900px) and (orientation: portrait), 
-           (pointer: coarse) and (max-height: 600px) and (orientation: portrait) {
+    @media (pointer: coarse) and (max-width: 900px) and (orientation: portrait), (pointer: coarse) and (max-height: 600px) and (orientation: portrait) {
       .reveal {
         font-size: ${settings.mobileFontSizeVertical} !important;
       }
@@ -204,10 +221,20 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
           : "overflow-y: hidden !important;"}
         padding-left: 6vw !important;
         padding-right: 6vw !important;
-        /* top padding covered by shared .present rule */
-        ${settings.centerMobileVertically
-          ? ""
-          : "padding-top: max(6vw, env(safe-area-inset-top, 28px)) !important;"}
+        ${
+          settings.centerMobileVertically
+            ? `
+          padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
+          justify-content: center !important;
+          `
+            : `
+          padding-top: max(6vw, env(safe-area-inset-top, 28px)) !important;
+          display: block !important;
+          `
+        }
         padding-bottom: 0 !important;
         background: none !important;
       }
@@ -216,8 +243,7 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
 
     // Landscape (horizontal) specific
     mobileCss += `
-    @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape), 
-           (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
+    @media (pointer: coarse) and (max-width: 900px) and (orientation: landscape), (pointer: coarse) and (max-height: 600px) and (orientation: landscape) {
       .reveal {
         font-size: ${settings.mobileFontSizeHorizontal} !important;
       }
@@ -229,8 +255,11 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
           : "overflow-y: hidden !important;"}
         padding-left: 6vw !important;
         padding-right: 6vw !important;
-        /* Always apply top safe-area padding in landscape */
         padding-top: max(2vw, env(safe-area-inset-top, 20px)) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
         padding-bottom: 0 !important;
         background: none !important;
       }
@@ -240,11 +269,6 @@ function injectSlideCss(settings: SlideImprovementsSettings) {
 
   styleTag.textContent = desktopCss + mobileCss;
   document.head.appendChild(styleTag);
-}
-
-function isMobile(): boolean {
-  // Use a simple check for pointer:coarse and width. Can be improved as needed.
-  return window.matchMedia('(pointer: coarse) and (max-width: 900px), (pointer: coarse) and (max-height: 600px)').matches;
 }
 
 export default class ObsidianSlideImprovementsPlugin extends Plugin {
@@ -308,16 +332,6 @@ export default class ObsidianSlideImprovementsPlugin extends Plugin {
       }
     });
 
-    // Wrap slide content in .slide-center-content on mobile if centerMobileVertically is enabled
-    this.app.workspace.onLayoutReady(() => {
-      this.patchMobileSlideCentering();
-    });
-    this.registerEvent(
-      this.app.workspace.on('resize', () => {
-        this.patchMobileSlideCentering();
-      })
-    );
-
     this.addSettingTab(new SlideImprovementsSettingTab(this.app, this));
   }
 
@@ -328,37 +342,6 @@ export default class ObsidianSlideImprovementsPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
     injectSlideCss(this.settings);
-    this.patchMobileSlideCentering();
-  }
-
-  patchMobileSlideCentering() {
-    // Only run if mobile and vertical centering is enabled
-    if (!isMobile() || !this.settings.centerMobileVertically) {
-      // Remove any previously added wrappers
-      document.querySelectorAll('.slide-center-content').forEach(el => {
-        const parent = el.parentElement;
-        if (parent && parent.classList.contains('present')) {
-          // Move all children out of wrapper
-          while (el.firstChild) parent.insertBefore(el.firstChild, el);
-          el.remove();
-        }
-      });
-      return;
-    }
-
-    // For each present section, wrap its content (if not already wrapped)
-    document.querySelectorAll('.reveal .slides > section.present').forEach(section => {
-      // Don't double wrap!
-      if (section.querySelector(':scope > .slide-center-content')) return;
-
-      // Move all direct children into the wrapper
-      const wrapper = document.createElement('div');
-      wrapper.className = 'slide-center-content';
-      while (section.firstChild) {
-        wrapper.appendChild(section.firstChild);
-      }
-      section.appendChild(wrapper);
-    });
   }
 }
 
