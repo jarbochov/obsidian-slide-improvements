@@ -5,14 +5,15 @@
   "author": "jarbochov",
   "main": "main.js",
   "scripts": {
-    "build": "tsc"
-  },
+      "build": "esbuild src/main.ts --bundle --outfile=main.js --platform=node --target=es2020 --external:obsidian"
+    },
   "keywords": [
     "obsidian-plugin",
     "slides",
     "presentation"
   ],
   "devDependencies": {
+    "esbuild": "^0.25.9",
     "obsidian": "^1.8.7",
     "typescript": "^5.0.0"
   },
