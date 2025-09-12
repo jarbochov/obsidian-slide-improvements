@@ -216,7 +216,7 @@ class SlideImprovementsSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: "Obsidian Slide Improvements - Settings" });
+    containerEl.createEl("h1", { text: "Slide Improvements - Settings" });
 
     // --- Settings Section (always visible) ---
     containerEl.createEl("h3", { text: "Settings" });
