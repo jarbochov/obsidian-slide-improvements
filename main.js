@@ -26,6 +26,8 @@ const DEFAULT_SETTINGS = {
 function injectSlideCss(settings) {
     const id = "obsidian-slide-improvements-styles";
     document.getElementById(id)?.remove();
+    // Only return early if BOTH styling options are disabled
+    // Scrolling is now handled separately by injectScrollCss()
     if (!settings.enableStyling && !settings.enableMobileStyling)
         return;
     const styleTag = document.createElement("style");
@@ -76,64 +78,6 @@ function injectSlideCss(settings) {
       .reveal .slides > section h5:not(:first-of-type),
       .reveal .slides > section h6:not(:first-of-type) {
         margin-top: var(--heading-margin-top, 2.5em) !important;
-      }
-    `;
-    }
-    // --- Desktop/tablet scrolling ---
-    if (settings.scrollableSlides) {
-        desktopCss += `
-      @media (pointer: fine), (hover: hover) {
-        .reveal .slides > section {
-          overflow-y: auto !important;
-          max-height: 100% !important;
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-        }
-        .reveal .slides > section::-webkit-scrollbar {
-          width: 0 !important;
-          height: 0 !important;
-          display: none !important;
-          background: transparent !important;
-        }
-      }
-      /* Improved Tablet landscape fix (iPad and large tablets up to 1400px): ensure all parents fill viewport and enable smooth scrolling */
-      @media (pointer: fine) and (min-width: 768px) and (max-width: 1400px) and (orientation: landscape) {
-        .reveal,
-        .reveal .viewport,
-        .reveal .slides,
-        .reveal .slides .stack,
-        .reveal .slides > section,
-        .reveal .slides > section.present {
-          height: 100vh !important;
-          min-height: 100vh !important;
-          max-height: 100vh !important;
-        }
-        .reveal .slides > section,
-        .reveal .slides > section.present {
-          overflow-y: auto !important;
-          -webkit-overflow-scrolling: touch !important;
-          scrollbar-width: none !important;
-          -ms-overflow-style: none !important;
-        }
-        .reveal .slides > section::-webkit-scrollbar,
-        .reveal .slides > section.present::-webkit-scrollbar {
-          width: 0 !important;
-          height: 0 !important;
-          display: none !important;
-          background: transparent !important;
-        }
-      }
-    `;
-    }
-    else {
-        desktopCss += `
-      @media (pointer: fine), (hover: hover) {
-        .reveal .slides > section {
-          overflow-y: unset !important;
-          max-height: unset !important;
-          scrollbar-width: unset !important;
-          -ms-overflow-style: unset !important;
-        }
       }
     `;
     }
@@ -356,13 +300,86 @@ function injectSlideCss(settings) {
     styleTag.textContent = desktopCss + mobileCss;
     document.head.appendChild(styleTag);
 }
+function injectScrollCss(settings) {
+    const id = "obsidian-slide-improvements-scroll-styles";
+    document.getElementById(id)?.remove();
+    const styleTag = document.createElement("style");
+    styleTag.id = id;
+    let scrollCss = "";
+    // Desktop/tablet scrolling - independent of styling settings
+    if (settings.scrollableSlides) {
+        scrollCss += `
+      @media (pointer: fine), (hover: hover) {
+        .reveal .slides > section {
+          overflow-y: auto !important;
+          max-height: 100% !important;
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        .reveal .slides > section::-webkit-scrollbar {
+          width: 0 !important;
+          height: 0 !important;
+          display: none !important;
+          background: transparent !important;
+        }
+      }
+      @media (pointer: fine) and (min-width: 768px) and (max-width: 1400px) and (orientation: landscape) {
+        .reveal,
+        .reveal .viewport,
+        .reveal .slides,
+        .reveal .slides .stack,
+        .reveal .slides > section,
+        .reveal .slides > section.present {
+          height: 100vh !important;
+          min-height: 100vh !important;
+          max-height: 100vh !important;
+        }
+        .reveal .slides > section,
+        .reveal .slides > section.present {
+          overflow-y: auto !important;
+          -webkit-overflow-scrolling: touch !important;
+          scrollbar-width: none !important;
+          -ms-overflow-style: none !important;
+        }
+        .reveal .slides > section::-webkit-scrollbar,
+        .reveal .slides > section.present::-webkit-scrollbar {
+          width: 0 !important;
+          height: 0 !important;
+          display: none !important;
+          background: transparent !important;
+        }
+      }
+    `;
+    }
+    else {
+        scrollCss += `
+      @media (pointer: fine), (hover: hover) {
+        .reveal .slides > section {
+          overflow-y: unset !important;
+          max-height: unset !important;
+          scrollbar-width: unset !important;
+          -ms-overflow-style: unset !important;
+        }
+      }
+    `;
+    }
+    styleTag.textContent = scrollCss;
+    document.head.appendChild(styleTag);
+}
 class ObsidianSlideImprovementsPlugin extends obsidian_1.Plugin {
     async onload() {
         await this.loadSettings();
         injectSlideCss(this.settings);
+        injectScrollCss(this.settings);
         // Re-inject CSS on window resize or orientation change for device rotation/dynamic breakpoints
-        window.addEventListener("resize", () => injectSlideCss(this.settings));
-        window.addEventListener("orientationchange", () => injectSlideCss(this.settings));
+        window.addEventListener("resize", () => {
+            injectSlideCss(this.settings);
+            injectScrollCss(this.settings);
+        });
+        window.addEventListener("orientationchange", () => {
+            injectSlideCss(this.settings);
+            injectScrollCss(this.settings);
+        });
         this.addCommand({
             id: 'create-slide-note',
             name: 'Create Slide Copy for Presentation',
@@ -424,6 +441,7 @@ class ObsidianSlideImprovementsPlugin extends obsidian_1.Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
         injectSlideCss(this.settings);
+        injectScrollCss(this.settings);
     }
 }
 exports.default = ObsidianSlideImprovementsPlugin;
